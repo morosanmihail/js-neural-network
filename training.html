@@ -1,0 +1,103 @@
+<html>
+	<head>
+		<title>Training module</title>
+		<script src="js/jquery-1.11.1.min.js"></script>
+		
+	</head>
+
+	<body>
+	<script type="text/javascript" src="js/neuralnet.js"></script>
+		<script type="text/javascript">
+  var NN = new NeuralNetwork(2,2,1);
+  $( document ).ready(function() {
+    NN.LoadFromLocalStorage();
+  });
+  function resetNN()
+  {
+    var hiddenneurons = parseInt($("#nn1").val());
+    NN = new NeuralNetwork(2,hiddenneurons,1);
+    NN.SaveToLocalStorage();
+  }
+  function runInput()
+  {
+    var input1 = parseFloat($("#input1").val());
+    var input2 = parseFloat($("#input2").val());
+    var input = [input1, input2];
+    var desired = [selectFunc()(input1, input2)];
+    var res = NN.TrainNetwork(input, desired);
+    $("#output").html("Test: Expected " + desired + ", got " + res + " (" +(res[0] > 0.5 ? "true" : "false") + ")");
+  }
+  function selectFunc()
+  {
+  	var opt = $("#func").val();
+    if(opt == "avg")
+      return function(i1,i2) { return (i1+i2)/2; };
+    if(opt == "or")
+      return function(i1,i2) { 
+        var a1 = (i1>0.5) ? true : false;
+        var a2 = (i2>0.5) ? true : false;
+        return a1 || a2;
+      };
+    if(opt == "and")
+      return function(i1,i2) { 
+        var a1 = (i1>0.5) ? true : false;
+        var a2 = (i2>0.5) ? true : false;
+        return a1 && a2;
+      };
+    if(opt == "xor")
+      return function(i1,i2) { 
+        var a1 = (i1>0.5) ? true : false;
+        var a2 = (i2>0.5) ? true : false;
+        return a1 ^ a2;
+      };
+  }
+  function automate(visual)
+  {
+    var TCount = parseInt($("#tcount").val());
+    var func = selectFunc() ;
+    if(visual)
+    {
+      runRandomData(0,TCount, true, func);
+    }else{
+      for(var i=0;i<TCount;i++)
+      {
+        runRandomData(i,TCount, false, func );
+      }
+    }
+    NN.SaveToLocalStorage();
+  }
+</script>
+		
+		<form class="form-inline">
+    <div class="controls controls-row">
+      	<input class="span3" id="input1" type="text" placeholder="input 1" /> 
+ 	 	<input class="span3" id="input2" type="text" placeholder="input 2" /> 
+ 		 <input class="span2" value="Run Set" type="button" onclick="runInput()" /> 
+    </div>
+ 	<div class="controls controls-row">
+      <input class="span2" id="tcount" type="text" value="1000" placeholder="# of runs" />
+ 	 <input class="span3" value="Run Training (Slow)" type="button" onclick="automate(true)" /> 
+ 	 <input class="span3" value="Run Training (Fast)" type="button" onclick="automate(false)" /> 
+      
+    </div>
+    <div class="controls controls-row">
+      Using 
+   	 <select id="func">
+   	   <option value="avg">Average</option>
+   	   <option value="or">OR</option>
+   	   <option value="and">AND</option>
+       <option value="xor">XOR</option>
+  	 </select>
+    </div>
+    <div class="controls controls-row">
+      <input class="span4" id="nn1" type="text" placeholder="hidden neurons" /> 
+ 	 <input class="span4" value="Reset Neural Network" type="button" onclick="resetNN()" />
+    </div>
+    </form>
+		<div id="output"></div>
+		
+		
+		
+	</body>
+
+</html>
